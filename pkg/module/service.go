@@ -5,8 +5,6 @@ import (
 	"fmt"
 )
 
-This should not compile
-
 // Service implements the Module Registry Protocol.
 // For more information see: https://www.terraform.io/docs/internals/module-registry-protocol.html.
 type Service interface {
