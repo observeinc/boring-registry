@@ -37,9 +37,7 @@ func testModuleData(files map[string]string) *bytes.Buffer {
 func TestService_GetModule(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.FailNow("This should not pass")
-
-	testCases := []struct {
+	testCases := []struct{
 		name        string
 		module      Module
 		data        io.Reader
