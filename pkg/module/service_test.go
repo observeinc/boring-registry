@@ -34,6 +34,8 @@ func testModuleData(files map[string]string) *bytes.Buffer {
 	return buf
 }
 
+This should not compile
+
 func TestService_GetModule(t *testing.T) {
 	assert := assert.New(t)
 
