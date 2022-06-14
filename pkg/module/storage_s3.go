@@ -21,6 +21,7 @@ type S3Storage struct {
 	bucketRegion   string
 	pathStyle      bool
 	bucketEndpoint string
+	forceHttps     bool
 }
 
 // GetModule retrieves information about a module from the S3 storage.
@@ -41,7 +42,7 @@ func (s *S3Storage) GetModule(ctx context.Context, namespace, name, provider, ve
 		Name:        name,
 		Provider:    provider,
 		Version:     version,
-		DownloadURL: fmt.Sprintf("%s.s3-%s.amazonaws.com/%s", s.bucket, s.bucketRegion, *input.Key),
+		DownloadURL: s.downloadUrl(*input.Key),
 	}, nil
 }
 
@@ -67,7 +68,7 @@ func (s *S3Storage) ListModuleVersions(ctx context.Context, namespace, name, pro
 				Name:        name,
 				Provider:    provider,
 				Version:     version,
-				DownloadURL: fmt.Sprintf("%s.s3-%s.amazonaws.com/%s", s.bucket, s.bucketRegion, *obj.Key),
+				DownloadURL: s.downloadUrl(*obj.Key),
 			}
 
 			modules = append(modules, module)
@@ -120,6 +121,14 @@ func (s *S3Storage) UploadModule(ctx context.Context, namespace, name, provider,
 	return s.GetModule(ctx, namespace, name, provider, version)
 }
 
+func (s *S3Storage) downloadUrl(key string) string {
+	protocol := ""
+	if s.forceHttps {
+		protocol = "https://"
+	}
+	return fmt.Sprintf("%s%s.s3-%s.amazonaws.com/%s", protocol, s.bucket, s.bucketRegion, key)
+}
+
 func (s *S3Storage) determineBucketRegion() (string, error) {
 	region, err := s3manager.GetBucketRegionWithClient(context.Background(), s.s3, s.bucket)
 	if err != nil {
@@ -165,6 +174,13 @@ func WithS3StoragePathStyle(pathStyle bool) S3StorageOption {
 			s.s3.Client.Config.S3ForcePathStyle = &pathStyle
 		}
 		s.pathStyle = pathStyle
+	}
+}
+
+// WithS3ForceHttpsProtocol configures if all download URLs should be forced to use the HTTPS protocol. (useful for Terraform clients that don't have AWS credentials)
+func WithS3ForceHttpsProtocol(force bool) S3StorageOption {
+	return func(s *S3Storage) {
+		s.forceHttps = force
 	}
 }
 

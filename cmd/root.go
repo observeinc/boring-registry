@@ -34,11 +34,12 @@ var (
 	flagModuleArchiveFormat string
 
 	// S3 options.
-	flagS3Bucket    string
-	flagS3Prefix    string
-	flagS3Region    string
-	flagS3Endpoint  string
-	flagS3PathStyle bool
+	flagS3Bucket     string
+	flagS3Prefix     string
+	flagS3Region     string
+	flagS3Endpoint   string
+	flagS3PathStyle  bool
+	flagS3ForceHttps bool
 
 	// GCS options.
 	flagGCSBucket          string
@@ -86,6 +87,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&flagS3Region, "storage-s3-region", "", "S3 bucket region to use for the registry")
 	rootCmd.PersistentFlags().StringVar(&flagS3Endpoint, "storage-s3-endpoint", "", "S3 bucket endpoint URL (required for MINIO)")
 	rootCmd.PersistentFlags().BoolVar(&flagS3PathStyle, "storage-s3-pathstyle", false, "S3 use PathStyle (required for MINIO)")
+	rootCmd.PersistentFlags().BoolVar(&flagS3ForceHttps, "storage-s3-force-https", false, "S3 artifacts served with download URLs that use HTTPS protocol (useful for publicly-available artifacts with Terraform clients that don't have AWS credentials)")
 	rootCmd.PersistentFlags().StringVar(&flagGCSBucket, "storage-gcs-bucket", "", "Bucket to use when using the GCS registry type")
 	rootCmd.PersistentFlags().StringVar(&flagGCSPrefix, "storage-gcs-prefix", "", "Prefix to use when using the GCS registry type")
 	rootCmd.PersistentFlags().StringVar(&flagGCSServiceAccount, "storage-gcs-sa-email", "", `Google service account email to be used for Application Default Credentials (ADC)
@@ -148,6 +150,7 @@ func setupS3ModuleStorage() (module.Storage, error) {
 		module.WithS3StorageBucketRegion(flagS3Region),
 		module.WithS3StorageBucketEndpoint(flagS3Endpoint),
 		module.WithS3StoragePathStyle(flagS3PathStyle),
+		module.WithS3ForceHttpsProtocol(flagS3ForceHttps),
 	)
 }
 
