@@ -38,7 +38,7 @@ func (s *InmemStorage) ListModuleVersions(ctx context.Context, namespace, name, 
 
 	for _, module := range s.modules {
 		if module.Namespace == namespace && module.Name == name && module.Provider == provider {
-			module.DownloadURL = storagePath("inmem", namespace, name, provider, module.Version)
+			module.DownloadURL = storagePath("inmem", namespace, name, provider, module.Version, false)
 			modules = append(modules, module)
 		}
 	}

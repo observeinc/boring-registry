@@ -25,7 +25,7 @@ type GCSStorage struct {
 }
 
 func (s *GCSStorage) GetModule(ctx context.Context, namespace, name, provider, version string) (Module, error) {
-	o := s.sc.Bucket(s.bucket).Object(storagePath(s.bucketPrefix, namespace, name, provider, version))
+	o := s.sc.Bucket(s.bucket).Object(storagePath(s.bucketPrefix, namespace, name, provider, version, false))
 	attrs, err := o.Attrs(ctx)
 	if err != nil {
 		return Module{}, errors.Wrap(ErrNotFound, err.Error())
@@ -53,7 +53,7 @@ func (s *GCSStorage) GetModule(ctx context.Context, namespace, name, provider, v
 
 func (s *GCSStorage) ListModuleVersions(ctx context.Context, namespace, name, provider string) ([]Module, error) {
 	var modules []Module
-	prefix := storagePrefix(s.bucketPrefix, namespace, name, provider)
+	prefix := storagePrefix(s.bucketPrefix, namespace, name, provider, false)
 
 	query := &storage.Query{
 		Prefix: prefix,
@@ -100,7 +100,7 @@ func (s *GCSStorage) UploadModule(ctx context.Context, namespace, name, provider
 		return Module{}, errors.New("version not defined")
 	}
 
-	key := storagePath(s.bucketPrefix, namespace, name, provider, version)
+	key := storagePath(s.bucketPrefix, namespace, name, provider, version, false)
 	if _, err := s.GetModule(ctx, namespace, name, provider, version); err == nil {
 		return Module{}, errors.Wrap(ErrAlreadyExists, key)
 	}
