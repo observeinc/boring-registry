@@ -26,23 +26,25 @@ type S3Storage struct {
 
 // GetModule retrieves information about a module from the S3 storage.
 func (s *S3Storage) GetModule(ctx context.Context, namespace, name, provider, version string) (Module, error) {
-	key := storagePath(s.bucketPrefix, namespace, name, provider, version)
+	rawKey := storagePath(s.bucketPrefix, namespace, name, provider, version, false)
+	fmt.Printf("checking for %s in %s\n", rawKey, s.bucket)
 
 	input := &s3.HeadObjectInput{
 		Bucket: aws.String(s.bucket),
-		Key:    aws.String(key),
+		Key:    aws.String(rawKey),
 	}
 
 	if _, err := s.s3.HeadObject(input); err != nil {
 		return Module{}, errors.Wrap(ErrNotFound, err.Error())
 	}
 
+	escapedKey := storagePath(s.bucketPrefix, namespace, name, provider, version, true)
 	return Module{
 		Namespace:   namespace,
 		Name:        name,
 		Provider:    provider,
 		Version:     version,
-		DownloadURL: s.downloadUrl(*input.Key),
+		DownloadURL: s.downloadUrl(escapedKey),
 	}, nil
 }
 
@@ -51,7 +53,7 @@ func (s *S3Storage) ListModuleVersions(ctx context.Context, namespace, name, pro
 
 	input := &s3.ListObjectsV2Input{
 		Bucket: aws.String(s.bucket),
-		Prefix: aws.String(storagePrefix(s.bucketPrefix, namespace, name, provider)),
+		Prefix: aws.String(storagePrefix(s.bucketPrefix, namespace, name, provider, false)),
 	}
 
 	fn := func(page *s3.ListObjectsV2Output, last bool) bool {
@@ -63,12 +65,14 @@ func (s *S3Storage) ListModuleVersions(ctx context.Context, namespace, name, pro
 				continue
 			}
 
+			escapedKey := storagePath(s.bucketPrefix, namespace, name, provider, version, true)
+
 			module := Module{
 				Namespace:   namespace,
 				Name:        name,
 				Provider:    provider,
 				Version:     version,
-				DownloadURL: s.downloadUrl(*obj.Key),
+				DownloadURL: s.downloadUrl(escapedKey),
 			}
 
 			modules = append(modules, module)
@@ -102,7 +106,7 @@ func (s *S3Storage) UploadModule(ctx context.Context, namespace, name, provider,
 		return Module{}, errors.New("version not defined")
 	}
 
-	key := storagePath(s.bucketPrefix, namespace, name, provider, version)
+	key := storagePath(s.bucketPrefix, namespace, name, provider, version, false)
 
 	if _, err := s.GetModule(ctx, namespace, name, provider, version); err == nil {
 		return Module{}, errors.Wrap(ErrAlreadyExists, key)
@@ -110,7 +114,7 @@ func (s *S3Storage) UploadModule(ctx context.Context, namespace, name, provider,
 
 	input := &s3manager.UploadInput{
 		Bucket: aws.String(s.bucket),
-		Key:    aws.String(storagePath(s.bucketPrefix, namespace, name, provider, version)),
+		Key:    aws.String(storagePath(s.bucketPrefix, namespace, name, provider, version, false)),
 		Body:   body,
 	}
 
