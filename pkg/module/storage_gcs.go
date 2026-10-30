@@ -107,10 +107,10 @@ func (s *GCSStorage) UploadModule(ctx context.Context, namespace, name, provider
 
 	wc := s.sc.Bucket(s.bucket).Object(key).NewWriter(ctx)
 	if _, err := io.Copy(wc, body); err != nil {
-		return Module{}, errors.Wrapf(ErrUploadFailed, err.Error())
+		return Module{}, errors.Wrap(ErrUploadFailed, err.Error())
 	}
 	if err := wc.Close(); err != nil {
-		return Module{}, errors.Wrapf(ErrUploadFailed, err.Error())
+		return Module{}, errors.Wrap(ErrUploadFailed, err.Error())
 	}
 
 	return s.GetModule(ctx, namespace, name, provider, version)
