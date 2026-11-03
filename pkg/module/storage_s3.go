@@ -119,7 +119,7 @@ func (s *S3Storage) UploadModule(ctx context.Context, namespace, name, provider,
 	}
 
 	if _, err := s.uploader.Upload(input); err != nil {
-		return Module{}, errors.Wrapf(ErrUploadFailed, err.Error())
+		return Module{}, errors.Wrap(ErrUploadFailed, err.Error())
 	}
 
 	return s.GetModule(ctx, namespace, name, provider, version)
